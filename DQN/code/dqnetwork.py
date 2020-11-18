@@ -55,6 +55,3 @@ class DQNetwork(nn.Module):
         #Output layer
         x = self.fc4(x)
         return x #dim = self.action_size
-        
-        
-        
