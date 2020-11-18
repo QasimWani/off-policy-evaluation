@@ -1,12 +1,12 @@
 - DQNetwork:
-  fc1: 32
+  fc1: 24
   fc2: 24
   fc3: False #indicating no use of 3rd fully connected layer
   dp1: False #indicating no use of dropout
   dp2: False #indicating no use of dropout
 
 - ReplayBuffer:
-  buffer_size: int(1e4)
+  buffer_size: int(1e5)
   batch_size: 64
   gamma: 0.99
   tau: 1e-3
