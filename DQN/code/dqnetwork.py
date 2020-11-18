@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 #set seed
-torch.manual_seed(0)
+# torch.manual_seed(0)
 
 
 class DQNetwork(nn.Module):

@@ -18,7 +18,7 @@ UPDATE_EVERY = 4        # how often to update the network
 
 class Agent():
     """Defines the agent class for DQN using Double Q-learning and Prioritized Experience Replay architecture"""
-    def __init__(self, state_size=4, action_size=2, gamma=0.99, lr=0.001, update_every=5):
+    def __init__(self, state_size=2, action_size=2, gamma=0.99, lr=LR, update_every=UPDATE_EVERY):
         """
         Initializes the model.
         ----
