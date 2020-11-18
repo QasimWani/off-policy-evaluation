@@ -1,5 +1,5 @@
 - DQNetwork:
-  fc1: 24
+  fc1: 32
   fc2: 24
   fc3: False #indicating no use of 3rd fully connected layer
   dp1: False #indicating no use of dropout
@@ -10,8 +10,8 @@
   batch_size: 64
   gamma: 0.99
   tau: 1e-3
-  lr: 0.001
-  update_every: 5
+  lr: 5e-4
+  update_every: 4
 
 - Agent:
   state_size: 4
