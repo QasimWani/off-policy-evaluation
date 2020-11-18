@@ -10,7 +10,7 @@
   batch_size: 64
   gamma: 0.99
   tau: 1e-3
-  lr: 5e-4
+  lr: 0.001
   update_every: 5
 
 - Agent:
