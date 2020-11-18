@@ -1,0 +1,22 @@
+- DQNetwork:
+  fc1: 24
+  fc2: 24
+  fc3: False #indicating no use of 3rd fully connected layer
+  dp1: False #indicating no use of dropout
+  dp2: False #indicating no use of dropout
+
+- ReplayBuffer:
+  buffer_size: int(1e5)
+  batch_size: 64
+  gamma: 0.99
+  tau: 1e-3
+  lr: 5e-4
+  update_every: 5
+
+- Agent:
+  state_size: 4
+  action_size: 2
+
+- training:
+  num_episodes: int(5e3)
+  env_solved: 195
