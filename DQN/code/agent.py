@@ -115,3 +115,14 @@ class Agent():
         
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(TAU*local_param.data + (1.0-TAU)*target_param.data)
+    
+    def save_model(self, path):
+        """Saves a local model under a specific filepath"""
+        torch.save(self.qnetwork_local.state_dict(), path)
+        print("Model saved!")
+    
+    def load_model(self, path):
+        """Loads a particular model with a specific filename"""
+        self.qnetwork_local.load_state_dict(torch.load(path))
+        self.qnetwork_target.load_state_dict(torch.load(path))
+        print("Model loaded into local and target networks!")
