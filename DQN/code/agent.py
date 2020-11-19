@@ -125,4 +125,7 @@ class Agent():
         """Loads a particular model with a specific filename"""
         self.qnetwork_local.load_state_dict(torch.load(path))
         self.qnetwork_target.load_state_dict(torch.load(path))
+        #set to evaluation mode
+        self.qnetwork_local.eval()
+        self.qnetwork_target.eval()
         print("Model loaded into local and target networks!")
