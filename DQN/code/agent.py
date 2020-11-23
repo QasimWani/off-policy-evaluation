@@ -5,6 +5,7 @@ from dqnetwork import DQNetwork
 import random
 from buffer import ReplayBuffer
 import torch.nn.functional as F
+import torch.nn as nn
 
 
 #Define constants
@@ -33,12 +34,14 @@ class Agent():
         self.action_size = action_size
         
         self.gamma = gamma #define dicsounted return
+        self.eval = False #set eval mode, for OPE calculation
         
         #Q-network : defines the 2 DQN (using doubling Q-learning architecture via fixed Q target)    
         self.qnetwork_local = DQNetwork(state_size, action_size, fc1, fc2)
         self.qnetwork_target = DQNetwork(state_size, action_size, fc1, fc2)
         if(path is not None): #eval mode
             self.load_model(path)
+            self.eval = True
             
         #define the optimizer
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=lr)
@@ -79,7 +82,13 @@ class Agent():
         self.qnetwork_local.train()#set in training mode
         
         #Epsilon-greedy selection
-        if(random.random() > eps):#exploit
+        if(random.random() > eps or self.eval):#exploit -or- eval mode
+            if(self.eval):
+                action = action_val
+                softmax = nn.Softmax(); prob = softmax(action)
+                
+                return np.argmax(action.cpu().data.numpy()), np.max(prob.cpu().data.numpy())
+            
             return np.argmax(action_val.cpu().data.numpy())
         
         return random.choice(np.arange(self.action_size))#explore
