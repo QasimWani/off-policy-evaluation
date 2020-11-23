@@ -82,11 +82,10 @@ class Agent():
         self.qnetwork_local.train()#set in training mode
         
         #Epsilon-greedy selection
-        if(random.random() > eps or self.eval):#exploit -or- eval mode
+        if(random.random() > eps):#exploit
             if(self.eval):
                 action = action_val
-                softmax = nn.Softmax(); prob = softmax(action)
-                
+                softmax = nn.Softmax(dim=1); prob = softmax(action)
                 return np.argmax(action.cpu().data.numpy()), np.max(prob.cpu().data.numpy())
             
             return np.argmax(action_val.cpu().data.numpy())
