@@ -18,7 +18,7 @@ UPDATE_EVERY = 4        # how often to update the network
 
 class Agent():
     """Defines the agent class for DQN using Double Q-learning and Prioritized Experience Replay architecture"""
-    def __init__(self, state_size=2, action_size=2, gamma=0.99, lr=LR, update_every=UPDATE_EVERY):
+    def __init__(self, state_size=4, action_size=2, gamma=0.99, lr=LR, update_every=UPDATE_EVERY, fc1=24, fc2=24, path=None):
         """
         Initializes the model.
         ----
@@ -34,10 +34,12 @@ class Agent():
         
         self.gamma = gamma #define dicsounted return
         
-        #Q-network : defines the 2 DQN (using doubling Q-learning architecture via fixed Q target)
-        self.qnetwork_local = DQNetwork()
-        self.qnetwork_target = DQNetwork()
-        
+        #Q-network : defines the 2 DQN (using doubling Q-learning architecture via fixed Q target)    
+        self.qnetwork_local = DQNetwork(state_size, action_size, fc1, fc2)
+        self.qnetwork_target = DQNetwork(state_size, action_size, fc1, fc2)
+        if(path is not None): #eval mode
+            self.load_model(path)
+            
         #define the optimizer
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=lr)
         
