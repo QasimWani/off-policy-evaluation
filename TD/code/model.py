@@ -8,9 +8,9 @@ import time
 import sys
 
 #create gym environment
-env_name = "Taxi-v3"
-env = gym.make(env_name)
-env = env.unwrapped #gets ride of TimeLimit
+# env_name = "Taxi-v3"
+# env = gym.make(env_name)
+# env = env.unwrapped #gets ride of TimeLimit
 
 
 #Agent class
@@ -48,7 +48,7 @@ class Agent():
     2. OpenAI simulation: https://gym.openai.com/envs/Taxi-v3
     -----
     Author: Qasim Wani
-    Date written: July 18, 2020.
+    Date written: December 21, 2020.
     """
     def __init__(self, env):
         self.nA = env.action_space.n
