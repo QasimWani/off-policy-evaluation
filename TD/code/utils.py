@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import time
 import sys
+import pickle
+
 
 def TD_learning(agent, num_episodes, alpha, gamma=1.0, td_type = "sarsa"):
     """
@@ -68,7 +70,7 @@ def TD_learning(agent, num_episodes, alpha, gamma=1.0, td_type = "sarsa"):
 
 
 
-def run_optimal_policy(agent, Q_optimal, num_episodes, td_type = 'sarsa', epsilon=0.0, gamma=1.0, alpha=1.0):
+def run_optimal_policy(agent, Q_optimal, num_episodes, td_type = 'sarsa', epsilon=0.0, gamma=1.0, alpha=1.0, plot=False):
     """
     Runs the optimal policy for an agent.
     @Params:
@@ -102,12 +104,25 @@ def run_optimal_policy(agent, Q_optimal, num_episodes, td_type = 'sarsa', epsilo
     #convert performance metrics to nd.array
     steps_arr = np.array(steps_arr)
     reward_arr = np.array(reward_arr)
-    plt.plot(steps_arr, label="steps")#plot steps
-    plt.plot(reward_arr, label="reward")#plot reward
-    plt.xlabel("Number of episodes")
-    plt.ylabel("Continuous value")
-    plt.ylim(-30, 20)#set y-axis boundaries
-    plt.legend(loc="upper right")#display legend
-    plt.show()
+    
+    if(plot):#plot results
+        plt.plot(steps_arr, label="steps")#plot steps
+        plt.plot(reward_arr, label="reward")#plot reward
+        plt.xlabel("Number of episodes")
+        plt.ylabel("Continuous value")
+        plt.ylim(-30, 20)#set y-axis boundaries
+        plt.legend(loc="upper right")#display legend
+        plt.show()
     
     return reward_arr, steps_arr
+
+def save_policy(agent, path):
+    """Saves a policy of an agent"""
+    np.save(path, dict(agent.Q))
+    print("Saved policy!")
+    
+
+def load_policy(path, nA=6):
+    """Load a policy"""
+    policy = np.load(path, allow_pickle=True)
+    return defaultdict(lambda : np.zeros(nA), policy.all())
