@@ -148,6 +148,16 @@ class Agent():
                 break
         return Q, steps_to_completion, total_reward
 
+    def softmax(self, inputs):
+        """
+        Calculate the softmax for the give inputs (array)
+        Parameters:
+        1. inputs: nd.array
+        Returns:
+        - softmax output
+        """
+        return np.exp(inputs) / float(sum(np.exp(inputs)))
+    
     def get_action(self, Q, state, eps):
         """
         Gets the action following epsilon greedy policy.
@@ -159,6 +169,10 @@ class Agent():
         - actions: the action to take based on choosing greedy action or random action
         """
         #exploit if True else explore
+        if(eps == 0):#eval mode
+            probs = self.softmax(Q[state])
+            return np.argmax(Q[state]), np.max(probs)
+            
         return np.argmax(Q[state]) if np.random.random() > eps else np.random.choice(np.arange(self.nA))
     
     def get_value_TD(self, next_state, next_action = None, TD_type = "sarsa", epsilon = None):
