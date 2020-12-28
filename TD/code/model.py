@@ -146,6 +146,7 @@ class Agent():
 
             if(done): #episode completed
                 break
+
         return Q, steps_to_completion, total_reward
 
     def softmax(self, inputs):
