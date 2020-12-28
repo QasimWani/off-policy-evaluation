@@ -9,6 +9,7 @@ from collections import defaultdict
 import time
 import sys
 import pickle
+from model import Agent
 
 
 def TD_learning(agent, num_episodes, alpha, gamma=1.0, td_type = "sarsa"):
@@ -70,7 +71,7 @@ def TD_learning(agent, num_episodes, alpha, gamma=1.0, td_type = "sarsa"):
 
 
 
-def run_optimal_policy(agent, Q_optimal, num_episodes, td_type = 'sarsa', epsilon=0.0, gamma=1.0, alpha=1.0, plot=False):
+def run_optimal_policy(agent:Agent, Q_optimal, num_episodes, td_type = 'sarsa', epsilon=0.0, gamma=1.0, alpha=1.0, plot=False):
     """
     Runs the optimal policy for an agent.
     @Params:
