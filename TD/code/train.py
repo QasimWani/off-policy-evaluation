@@ -1,4 +1,4 @@
-###### Requires python3.8+
+###### Requires python3+
 ### Author: Qasim Wani
 import numpy as np
 import pandas as pd

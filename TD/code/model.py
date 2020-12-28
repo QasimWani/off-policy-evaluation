@@ -106,7 +106,7 @@ class Agent():
         """
         return self.decode(self.env.reset()) if decode else self.env.reset()
     
-    def generate_episode(self, values, TD_type = "sarsa"):
+    def generate_episode(self, values, TD_type = "sarsa", eval_mode=False):
         """
         Generates an episode & updates the Q_table along the way.
         Parameters:
@@ -124,7 +124,7 @@ class Agent():
         total_reward:int = 0 #total reward accumulated in an episode
         Q = self.Q
         while True:
-            action = self.get_action(Q, state, epsilon)#choose between greedy or equiprobable action
+            action = self.get_action(Q, state, epsilon, eval_mode)#choose between greedy or equiprobable action
 
             next_state, reward, done,_ = self.env.step(action) #step into the episode
             value = Q[state][action] #get current value
@@ -159,7 +159,7 @@ class Agent():
         """
         return np.exp(inputs) / float(sum(np.exp(inputs)))
     
-    def get_action(self, Q, state, eps):
+    def get_action(self, Q, state, eps, eval_mode=False):
         """
         Gets the action following epsilon greedy policy.
         Parameters:
@@ -170,7 +170,7 @@ class Agent():
         - actions: the action to take based on choosing greedy action or random action
         """
         #exploit if True else explore
-        if(eps == 0):#eval mode
+        if(eps == 0 and not eval_mode):#eval mode
             probs = self.softmax(Q[state])
             return np.argmax(Q[state]), np.max(probs)
             
