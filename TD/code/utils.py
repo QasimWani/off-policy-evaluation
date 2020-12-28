@@ -97,7 +97,7 @@ def run_optimal_policy(agent:Agent, Q_optimal, num_episodes, td_type = 'sarsa', 
             print("\rEpisode {}/{}".format(i, num_episodes), end="")
             sys.stdout.flush()
         
-        _, steps, reward = agent.generate_episode(values, TD_type = td_type)
+        _, steps, reward = agent.generate_episode(values, TD_type = td_type, eval_mode=True)
         #performance monitor
         steps_arr.append(steps)#append #steps for current episode (should decrease as num_episode -> ∞)
         reward_arr.append(reward)#should approach optimal reward as num_episode -> ∞
