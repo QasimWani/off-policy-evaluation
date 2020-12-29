@@ -127,3 +127,19 @@ def load_policy(path, nA=6):
     """Load a policy"""
     policy = np.load(path, allow_pickle=True)
     return defaultdict(lambda : np.zeros(nA), policy.all())
+
+
+def load_env():
+    """
+    Loads the Taxi-v3 environment from OpenAI Gym.
+    """
+    #create gym environment
+    env_name = "Taxi-v3"
+    env = gym.make(env_name)
+    env = env.unwrapped #gets ride of TimeLimit
+    return env
+
+
+def to_list(items:str):
+    """ Convert str to list of ints """
+    return [int(item) for item in items.split(',')]

@@ -9,21 +9,12 @@ from collections import defaultdict
 from os import listdir, getcwd
 from os.path import isabs, join, isfile
 import re
+import argparse
 
 from model import Agent
 import utils
 from estimator import IS
 from wrapper import MSE
-
-def load_env():
-    """
-    Loads the Taxi-v3 environment from OpenAI Gym.
-    """
-    #create gym environment
-    env_name = "Taxi-v3"
-    env = gym.make(env_name)
-    env = env.unwrapped #gets ride of TimeLimit
-    return env
 
 def load_policies(path):
     """Loads all policies in a directory"""
@@ -178,26 +169,45 @@ def main(policy_dict, N):
     assert(X.shape == (K, 3))
     return X
 
+
 if __name__ == "__main__":
-    
-    env = load_env() #Load environment
+
+    parser = argparse.ArgumentParser(description='Run OPE for TD Learning')
+
+    parser.add_argument('-agents', metavar='List_agents', type=str, default=[],
+                        help='list of agents to store in policy matrix. Leave this blank to include all agents')
+    parser.add_argument('-IS', metavar='str_sampling', type=str, default='OIS',
+                        help='Enter type of Importance Sampling algorithm in OPE calculation.')
+    parser.add_argument('-mse', metavar='str_mse_alg', default='lr',
+                        help='Enter type of MSE algorithm for calculation of Value in MSE. Options = '\
+                        'lr: linear regression; ridge: Ridge Regression; lasso: Lasso Regression; logit: Logistic Regression; maml: Model-Agnostic via Meta-Learning')
+
+
+    args = parser.parse_args() #parse arguments
+
+    env = utils.load_env() #Load environment
     agent = Agent(env) #create TD agent
 
     matrix = load_policies("../model/")
-    agents, idx = store_agents([4,9], matrix) #pair agents
+    
+
+    """ Get arguments from user """
+    agent_indices = utils.to_list(args.agents) if len(args.agents) > 0 else np.arange(1, len(matrix.keys()) + 1)
+    
+    agents, idx = store_agents(agent_indices, matrix) #pair agents
     
     #each key indicates evaluation policy, and corresponding values indicate behavior policies
     policy_dict = policy_matrix(agents)
     
     ### Importance Sampling
-    sampling_function = IS(env).func
+    sampling_function = IS(env, type=args.IS).func
     
-    ### calculate X with 50 trajectories
+    ### calculate X with 1k trajectories
     X = main(policy_dict, 1000)
     ### generate true value estimate
     true_values = Value(policy_dict, 1000)
 
-    mse = MSE("lr") #set regression algorithm
+    mse = MSE(args.mse) #set regression algorithm
 
     error = mse.mse(X, true_values) # train regression algorithm and compute the mean square error
     print("MSE = ", error)
