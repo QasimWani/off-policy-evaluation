@@ -125,7 +125,7 @@ class Agent():
         Q = self.Q
         while True:
             action = self.get_action(Q, state, epsilon, eval_mode)#choose between greedy or equiprobable action
-
+            print(action)
             next_state, reward, done,_ = self.env.step(action) #step into the episode
             value = Q[state][action] #get current value
             next_action = self.get_action(Q, next_state, epsilon)#choose between greedy/random for next state

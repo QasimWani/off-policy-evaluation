@@ -8,6 +8,10 @@
 # 4. Logistic Regression (should binning be used to convert continuous variable to categorical?)
 # 5. meta-learning
 #####################
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn import metrics
 
 class MSE():
     """Perform OPE caculation using MSE as loss function"""
@@ -16,34 +20,54 @@ class MSE():
         Specify type of regression algorithm for wrapper on MSE
         >>> type: (str) "lr" [simple linear regression], "ridge" [ridge regression],..., "maml" [meta-learning]
         """
+        self.model = None
+        
         if(type == "lr"):
             self.alg = self.linear_regression
+            self.model = LinearRegression
+
         elif(type == "ridge"):
             self.alg = self.ridge_regression
-        elif(type == "maml"):
-            self.alg = self.maml
+            self.model = Ridge
+        
         elif(type == "lasso"):
             self.alg = self.lasso_regression
+            self.model = Lasso
+       
         elif(type == "logit"):
             self.alg = self.logistic_regression
+            
+        elif(type == "maml"):
+            self.alg = self.maml
+        
         else:
             raise ValueError("Incorrect type specificed. See docs for `type`")
         
         self.coef = self.intercept = None
+        self.reg = None
         
+    def predict(self, X):
+        """ generate y_hat from test observations, X """
+        if(self.reg is None and self.model is not None):
+            self.reg = self.model()
+            params = self.getParams()
+            self.reg.intercept_ = params["intercept_"]
+            self.reg.coef_ = params["coef_"]
+            
+        return self.reg.predict(X)
+    
     def linear_regression(self, X, y):
         """transform & fit linear regression model to feature matrix, X"""
-        from sklearn.linear_model import LinearRegression
-        reg = LinearRegression().fit(X, y) 
         
+        self.reg = LinearRegression().fit(X, y) 
         if(self.coef is None):
-            self.coef = reg.coef_
-            self.intercept = reg.intercept_
+            self.coef = self.reg.coef_
+            self.intercept = self.reg.intercept_
         else:
-            reg.coef_ = self.coef
-            reg.intercept_ = self.intercept
+            self.reg.coef_ = self.coef
+            self.reg.intercept_ = self.intercept
 
-        return reg.predict(X)
+        return self.reg.predict(X)
     
     def logistic_regression(self, X, y):
         """transform & fit logistic regression model to feature matrix, X"""
@@ -51,38 +75,36 @@ class MSE():
     
     def ridge_regression(self, X, y):
         """transform and fit ridge regression model to feature matrix, X for ridge regression"""
-        from sklearn.linear_model import Ridge
-        reg = Ridge().fit(X, y) 
+        self.reg = Ridge().fit(X, y) 
         if(self.coef is None):
-            self.coef = reg.coef_
-            self.intercept = reg.intercept_
+            self.coef = self.reg.coef_
+            self.intercept = self.reg.intercept_
         else:
-            reg.coef_ = self.coef
-            reg.intercept_ = self.intercept
+            self.reg.coef_ = self.coef
+            self.reg.intercept_ = self.intercept
 
-        return reg.predict(X)
+        return self.reg.predict(X)
     
     def lasso_regression(self, X, y):
         """transform and fit lasso regression model to feature matrix, X for lasso regression"""
-        from sklearn.linear_model import Lasso
-        reg = Lasso().fit(X, y) 
+        
+        self.reg = Lasso().fit(X, y) 
         if(self.coef is None):
-            self.coef = reg.coef_
-            self.intercept = reg.intercept_
+            self.coef = self.reg.coef_
+            self.intercept = self.reg.intercept_
         else:
-            reg.coef_ = self.coef
-            reg.intercept_ = self.intercept
+            self.reg.coef_ = self.coef
+            self.reg.intercept_ = self.intercept
 
-        return reg.predict(X)
+        return self.reg.predict(X)
         
     def maml(self, X, y):
         """implementation of model-agnostic meta-learning for parameter generation"""
         raise NotImplementedError
         
-    def mse(self, X, y):
+    def mse(self, X, y, mode="train"):
         """Calculates MSE"""
-        from sklearn import metrics
-        return metrics.mean_squared_error(self.alg(X, y), y)
+        return metrics.mean_squared_error(self.alg(X, y) if mode == "train" else self.predict(X), y)
     
     def getParams(self):
         """Gets the parameters from algorithm"""

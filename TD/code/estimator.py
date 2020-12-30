@@ -36,6 +36,7 @@ class IS():
             total_reward += reward #update reward
             state = next_state #update state
             counter += 1
+            
             if(done or counter > 125): #stopping condition
                 break
 
