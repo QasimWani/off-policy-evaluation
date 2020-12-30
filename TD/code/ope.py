@@ -121,7 +121,7 @@ def Value(policy_dict, N):
                 total_reward += reward
                 state = next_state
                 counter += 1
-                if(done or counter > 500): break
+                if(done or counter > 125): break
                     
             #append to value
             value.append(total_reward)
@@ -169,6 +169,19 @@ def main(policy_dict, N):
     assert(X.shape == (K, 3))
     return X
 
+def test_model(params, policy_dict, type="lr"):
+    """ Test algorithm """
+    ### calculate X with 1k trajectories
+    X = main(policy_dict, 1000)
+    ### generate true value estimate
+    y = Value(policy_dict, 1000)
+    
+    mse = MSE(type) #set regression algorithm
+    mse.setParams(params)
+    
+    error = mse.mse(X, y, mode='test')
+    
+    return error
 
 if __name__ == "__main__":
 
@@ -209,11 +222,23 @@ if __name__ == "__main__":
 
     mse = MSE(args.mse) #set regression algorithm
 
-    error = mse.mse(X, true_values) # train regression algorithm and compute the mean square error
-    print("MSE = ", error)
-
+    train_error = mse.mse(X, true_values) # train regression algorithm and compute the mean square error
+    
     params  = mse.getParams() # get coefficients and y-intercept from running regression
-    print("Params = ", params)
 
     expected_return = true_values.mean() ## E[v(π)]
-    print("Expected Return = ", expected_return)
+
+    ### Test Model with fitted params
+    test_error = test_model(params, policy_dict, type=args.mse)
+    
+    
+    
+    
+    # Display Stats
+    print("********* Results *********")
+    print("* Coefficients = ", params["coef_"])
+    print("* Intercept = ", params["intercept_"][0])
+    print("* Expected Return = ", expected_return)
+    print("* Train MSE = ", train_error)
+    print("* Test MSE: ", test_error)
+    print("********* Results *********")
