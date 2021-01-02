@@ -9,9 +9,11 @@
 # 5. meta-learning
 #####################
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
 from sklearn import metrics
+import numpy as np
 
 class MSE():
     """Perform OPE caculation using MSE as loss function"""
@@ -21,6 +23,7 @@ class MSE():
         >>> type: (str) "lr" [simple linear regression], "ridge" [ridge regression],..., "maml" [meta-learning]
         """
         self.model = None
+        self.degree = 3 #defauly polynomial order
         
         if(type == "lr"):
             self.alg = self.linear_regression
@@ -37,6 +40,10 @@ class MSE():
         elif(type == "logit"):
             self.alg = self.logistic_regression
             
+        elif(type == "poly"):
+            self.alg = self.polynomial_regression
+            self.model = LinearRegression
+        
         elif(type == "maml"):
             self.alg = self.maml
         
@@ -53,6 +60,10 @@ class MSE():
             params = self.getParams()
             self.reg.intercept_ = params["intercept_"]
             self.reg.coef_ = params["coef_"]
+
+        #check for polynomial model
+        if(self.alg == self.polynomial_regression):
+            X = PolynomialFeatures(degree=self.degree).fit_transform(X)
             
         return self.reg.predict(X)
     
@@ -76,6 +87,21 @@ class MSE():
     def ridge_regression(self, X, y):
         """transform and fit ridge regression model to feature matrix, X for ridge regression"""
         self.reg = Ridge().fit(X, y) 
+        if(self.coef is None):
+            self.coef = self.reg.coef_
+            self.intercept = self.reg.intercept_
+        else:
+            self.reg.coef_ = self.coef
+            self.reg.intercept_ = self.intercept
+
+        return self.reg.predict(X)
+    
+    def polynomial_regression(self, X, y):
+        """transform and fit polynomial regression model with degree 2 to feature matrix, X"""
+    
+        X = PolynomialFeatures(degree=self.degree).fit_transform(X)
+        
+        self.reg = LinearRegression().fit(X,y)  
         if(self.coef is None):
             self.coef = self.reg.coef_
             self.intercept = self.reg.intercept_
