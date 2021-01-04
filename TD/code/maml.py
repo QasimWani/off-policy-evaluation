@@ -24,23 +24,27 @@ class MAML():
             6. theta: (nd.array[np.float32]) optional param to perform meta-update on input parameter.
             7. bias: (float) y-intercept for parameters theta.
         """
+        #enable cuda if possible
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
         #parameter distribution
         self.theta = torch.tensor(theta, requires_grad=True) if theta is not None else torch.rand(param_size, requires_grad=True)
         self.bias = torch.tensor(bias, requires_grad=True) if bias is not None else torch.rand(1, requires_grad=True) #get y-intercept
         
         #define tasks and associated return values
         self.tasks = X
-        self.y = values.flatten()
+        self.y = torch.FloatTensor(values)
 
         #define MAML hyperparameters
         self.alpha = alpha
         self.beta = beta
         
-        self.loss = nn.MSELoss() #define loss function
+        self.criteon = nn.MSELoss() #define loss function
         
-        params = list(self.theta.detach())
-        params.extend(list(self.bias.detach()))
-        self.meta_optim = optim.Adam(params, lr=self.beta)
+        self.w_ = self.theta.to(device)
+        self.b_ = self.bias.to(device)
+        
+        self.meta_optim = optim.Adam([self.w_, self.b_], lr=self.beta)
     
     def update(self, max_norm=1):
         """ Run a single iteration of MAML algorithm """
@@ -48,38 +52,44 @@ class MAML():
         theta_prime = []
         bias_prime = []
         for i, task in enumerate(self.tasks):
-            y_hat = self.f( self.theta, self.bias, task )[i] #task specific reward prediction
-            loss = self.loss( y_hat, torch.tensor([self.y[i]], requires_grad=True))
-
+            y_hat = self.f( self.theta, self.bias, task ) #task specific reward prediction
+            loss = self.criteon( y_hat, self.y)
             #compute gradients
-            grad_theta = torch.autograd.grad(loss, self.theta, retain_graph=True)[0]
-            grad_bias = torch.autograd.grad(loss, self.bias)[0]
-
+            grad = torch.autograd.grad(loss, [self.w_, self.b_])
             #update params
-            theta_prime.append( self.theta.data - self.alpha * grad_theta.data )
-            bias_prime.append( self.bias.data - self.alpha * grad_bias.data )
-            
-        #perform meta-update
-        loss = Variable(torch.tensor(0.0), requires_grad=True)
+            theta_prime.append( self.theta - self.alpha * grad[0] )
+            bias_prime.append( self.bias - self.alpha * grad[1] )
+
+        del loss
         
+        #perform meta-update
+        m_loss = torch.tensor(0.0, requires_grad=True)
         for i in range(len(self.tasks)):
             theta = theta_prime[i]
             bias = bias_prime[i]
             task = self.tasks[i]
-            y_hat = self.f( theta, bias, task )[i] #task specific reward prediction
+            y_hat = self.f( theta, bias, task ) #task specific reward prediction
             with torch.no_grad():
-                loss += self.loss( y_hat, torch.tensor([self.y[i]]))
+                m_loss += self.criteon( y_hat, self.y)
+                print("meta-loss", m_loss)
  
+        #temp
+        self.theta.retain_grad()
+        self.bias.retain_grad()
+        
+        print(self.bias.grad)
+        
+
         #zero gradient before running backward pass
         self.meta_optim.zero_grad()    
 
         #backward pass
-        loss.backward(retain_graph=True)
+        m_loss.backward(retain_graph=True)
 
         #one-step gradient descent
         self.meta_optim.step()
         
-        return loss.data
+        return m_loss.data
     
     def f(self, theta, bias, X):
         """ Compute dot product of X w.r.t parameters theta """
