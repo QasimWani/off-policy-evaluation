@@ -64,7 +64,7 @@ class MSE():
         #check for polynomial model
         if(self.alg == self.polynomial_regression):
             X = PolynomialFeatures(degree=self.degree).fit_transform(X)
-            
+        
         return self.reg.predict(X)
     
     def linear_regression(self, X, y):
