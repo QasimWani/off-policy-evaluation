@@ -15,6 +15,7 @@ from model import Agent
 import utils
 from estimator import IS
 from wrapper import MSE
+from maml import MAML
 
 def load_policies(path):
     """Loads all policies in a directory"""
@@ -217,12 +218,14 @@ if __name__ == "__main__":
     
     ### calculate X with 1k trajectories
     X = main(policy_dict, 1000)
+
     ### generate true value estimate
     true_values = Value(policy_dict, 1000)
 
-    mse = MSE(args.mse) #set regression algorithm
+    mse = MSE(args.mse, tuple( (len(policy_dict.keys()), 3) )) #set regression algorithm
 
     train_error = mse.mse(X, true_values) # train regression algorithm and compute the mean square error
+    print("* Train MSE = ", train_error)
     
     params  = mse.getParams() # get coefficients and y-intercept from running regression
 
