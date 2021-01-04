@@ -13,7 +13,7 @@ from estimator import IS
 
 class MAML():
     """ Implementation of Model Agnostic meta-learning algorithm """
-    def __init__(self, X, values, param_size:tuple, alpha:float=0.01, beta:float=0.1, theta=None, bias:float=None):
+    def __init__(self, X, values, param_size:tuple, alpha:float=0.01, beta:float=0.05, theta=None, bias:float=None):
         """ 
             Initialize params and agents for tasks as defined:
             1. X: (nd.array) array of shape (N, 3) where N represents the number of evaluation agents used to calculate the gradient updates from policy_dict (see ope.py).
@@ -28,8 +28,8 @@ class MAML():
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         #parameter distribution
-        self.theta = torch.tensor(theta, requires_grad=True) if theta is not None else torch.rand(param_size, requires_grad=True)
-        self.bias = torch.tensor(bias, requires_grad=True) if bias is not None else torch.rand(1, requires_grad=True) #get y-intercept
+        self.coef_ = torch.tensor(theta, requires_grad=True) if theta is not None else torch.rand(param_size, requires_grad=True)
+        self.intercept_ = torch.tensor(bias, requires_grad=True) if bias is not None else torch.rand(1, requires_grad=True) #get y-intercept
         
         #define tasks and associated return values
         self.tasks = X
@@ -41,24 +41,21 @@ class MAML():
         
         self.criteon = nn.MSELoss() #define loss function
         
-        self.w_ = self.theta.to(device)
-        self.b_ = self.bias.to(device)
-        
-        self.meta_optim = optim.Adam([self.w_, self.b_], lr=self.beta)
+        self.meta_optim = optim.Adam([self.coef_, self.intercept_], lr=self.beta)
     
-    def update(self, max_norm=1):
+    def update(self, max_norm=5.0):
         """ Run a single iteration of MAML algorithm """
         # wip w/o batch sampling
         theta_prime = []
         bias_prime = []
         for i, task in enumerate(self.tasks):
-            y_hat = self.f( self.theta, self.bias, task ) #task specific reward prediction
+            y_hat = self.f( self.coef_, self.intercept_, task ) #task specific reward prediction
             loss = self.criteon( y_hat, self.y)
             #compute gradients
-            grad = torch.autograd.grad(loss, [self.w_, self.b_])
+            grad = torch.autograd.grad(loss, [self.coef_, self.intercept_])
             #update params
-            theta_prime.append( self.theta - self.alpha * grad[0] )
-            bias_prime.append( self.bias - self.alpha * grad[1] )
+            theta_prime.append( self.coef_ - self.alpha * grad[0] )
+            bias_prime.append( self.intercept_ - self.alpha * grad[1] )
 
         del loss
         
@@ -69,24 +66,17 @@ class MAML():
             bias = bias_prime[i]
             task = self.tasks[i]
             y_hat = self.f( theta, bias, task ) #task specific reward prediction
-            with torch.no_grad():
-                m_loss += self.criteon( y_hat, self.y)
-                print("meta-loss", m_loss)
+            m_loss = m_loss + self.criteon( y_hat, self.y)
  
-        #temp
-        self.theta.retain_grad()
-        self.bias.retain_grad()
-        
-        print(self.bias.grad)
-        
-
         #zero gradient before running backward pass
-        self.meta_optim.zero_grad()    
+        self.meta_optim.zero_grad()
 
         #backward pass
         m_loss.backward(retain_graph=True)
 
         #one-step gradient descent
+        nn.utils.clip_grad_norm_([self.coef_, self.intercept_], max_norm) #clip gradients
+        
         self.meta_optim.step()
         
         return m_loss.data
@@ -94,6 +84,16 @@ class MAML():
     def f(self, theta, bias, X):
         """ Compute dot product of X w.r.t parameters theta """
         X = torch.FloatTensor(X).reshape(3, 1)
-        dot = torch.matmul( theta, X ) # (N x 3) • (3 x 1)
+        dot = torch.matmul( theta, X) # (N x 3) • (3 x 1)
+        dot.requires_grad_() #bug fix to retain computational graph
         return dot + bias # shape = (N, 1)
+    
+    def predict(self, X):
+        """ compute y_hat based on maml trained parameters """
+        X = torch.FloatTensor(X.T)
+        theta = self.coef_.clone()
+        dot = torch.matmul(theta, X).detach().data
+        dot = torch.mean(dot, 1, True)
+
+        return dot.numpy() + self.intercept_.detach().numpy()
             
