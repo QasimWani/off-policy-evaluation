@@ -17,17 +17,16 @@ import numpy as np
 
 from maml import MAML
 
+
 class MSE():
     """Perform OPE caculation using MSE as loss function"""
-    def __init__(self, type, param_size=None):
+    def __init__(self, type):
         """
         Specify type of regression algorithm for wrapper on MSE
         >>> type: (str) "lr" [simple linear regression], "ridge" [ridge regression],..., "maml" [meta-learning]
-        >>> param_size: (tuple) meta-learning parameter representing shape of policy_dict (see ope.py for more info on policy_dict)
         """
         self.model = None
         self.degree = 3 #default polynomial order
-        self.param_size = param_size #maml param
 
         if(type == "lr"):
             self.alg = self.linear_regression
@@ -51,6 +50,7 @@ class MSE():
         elif(type == "maml"):
             self.alg = self.maml
             self.model = LinearRegression
+            self.maml_architecture = None
         
         else:
             raise ValueError("Incorrect type specificed. See docs for `type`")
@@ -58,13 +58,17 @@ class MSE():
         self.coef = self.intercept = None
         self.reg = None
         
+    def set_native_params(self, params):
+        """ Set coef_ and intercept_ params"""
+        self.reg.intercept_ = params["intercept_"]
+        self.reg.coef_ = params["coef_"]
+            
     def predict(self, X):
         """ generate y_hat from test observations, X """
         if(self.reg is None and self.model is not None):
-            self.reg = self.model()
             params = self.getParams()
-            self.reg.intercept_ = params["intercept_"]
-            self.reg.coef_ = params["coef_"]
+            self.reg = self.model()
+            self.set_native_params(params)
 
         #check for polynomial model
         if(self.alg == self.polynomial_regression):
@@ -130,16 +134,19 @@ class MSE():
         return self.reg.predict(X)
         
     def maml(self, X, y):
-        """implementation of model-agnostic meta-learning for parameter generation"""
-        self.reg = MAML(X, y, self.param_size)
-        self.reg.update() #perform 1 gradient update TODO: replace original/default params with trained params from another regression alg.
+        """implementation of model-agnostic meta-learning for parameter initialization"""
+        reg_params = LinearRegression().fit(X, y)
+        
+        self.reg = MAML(X, y, theta=reg_params.coef_, bias=reg_params.intercept_)
+        self.reg.update() #perform 1 gradient update
+
         if(self.coef is None):
             self.coef = self.reg.coef_.detach().numpy()
             self.intercept = self.reg.intercept_.detach().numpy()
         else:
             self.reg.coef_.data = self.coef
             self.reg.intercept_.data = self.intercept
-            
+
         return self.reg.predict(X)
         
     def mse(self, X, y, mode="train"):
