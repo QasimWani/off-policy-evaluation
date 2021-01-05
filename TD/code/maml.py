@@ -1,10 +1,8 @@
 #implementation of MAML for updating coefficients of regression task.
 
 import torch
-import torch.nn.functional as F
 from torch import optim
 import torch.nn as nn
-from torch.autograd import Variable
 
 import numpy as np
 
