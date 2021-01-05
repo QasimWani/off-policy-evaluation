@@ -163,11 +163,12 @@ def main(policy_dict, N):
     #typecast to nd.array
     X_1 = np.array([X_1])
     X_2 = np.array([X_2])
-    ones = np.ones(X_1.shape)
-    X = np.hstack((X_1.T, X_2.T, ones.T)) #concat
+    # ones = np.ones(X_1.shape)
+    # X = np.hstack((X_1.T, X_2.T, ones.T)) #concat
+    X = np.hstack((X_1.T, X_2.T)) #concat
     
     #Test dimensions
-    assert(X.shape == (K, 3))
+    assert(X.shape == (K, 2))
     return X
 
 def test_model(params, policy_dict, type="lr"):

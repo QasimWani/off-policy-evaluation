@@ -14,10 +14,10 @@ torch.set_default_dtype(torch.double) #bug fix - float matmul
 
 class MAML():
     """ Implementation of Model Agnostic meta-learning algorithm """
-    def __init__(self, X, values, alpha:float=0.05, beta:float=0.001, theta=None, bias:float=None):
+    def __init__(self, X, values, alpha:float=0.01, beta:float=0.001, theta=None, bias:float=None):
         """ 
             Initialize params and agents for tasks as defined:
-            1. X: (nd.array) array of shape (N, 3) where N represents the number of evaluation agents used to calculate the gradient updates from policy_dict (see ope.py).
+            1. X: (nd.array) array of shape (N, 2) where N represents the number of evaluation agents used to calculate the gradient updates from policy_dict (see ope.py).
             2. values: (nd.array) array of shape (N, 1) where N represents the number of evaluation agents to represent the expected return for N agents, i.e. E[v(π)].
             3. alpha: (float) internal gradient update hyperparameter. See MAML paper for details.
             4. beta: (float) meta-update hyperparameter. See MAML paper for details.
@@ -28,7 +28,7 @@ class MAML():
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         #parameter distribution
-        shape = tuple((1, 3))
+        shape = tuple((1, 2))
         
         self.coef_ = torch.rand(shape, requires_grad=True)
         self.intercept_ = torch.rand(1, requires_grad=True) #get y-intercept
@@ -87,8 +87,8 @@ class MAML():
                     
     def f(self, theta, bias, X):
         """ Compute dot product of X w.r.t parameters theta """
-        X = torch.DoubleTensor(X).reshape(3, 1)
-        dot = torch.matmul( theta, X) # (N x 3) • (3 x 1)
+        X = torch.DoubleTensor(X).reshape(2, 1)
+        dot = torch.matmul( theta, X) # (N x 2) • (2 x 1)
         dot.requires_grad_() #bug fix to retain computational graph
         return dot + bias # shape = (N, 1)
     
