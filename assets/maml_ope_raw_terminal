@@ -1,0 +1,67 @@
+(base) qasimwani@MacBook-Pro code %  python ope.py -agents=2,9,5 -mse=maml -IS=RIS;  python ope.py -agents=2,9,5 -mse=lr -IS=RIS 
+
+Set params!
+********* Results *********
+* Coefficients =  [[-5.94393012e-01 -1.47080345e+00 -6.03968440e-06]]
+* Intercept =  -114.3079049988051
+* Expected Return =  -36.717333333333336
+* Train MSE =  0.0006633155028388798
+* Test MSE:  0.018452184911873414
+********* Results *********
+Set params!
+********* Results *********
+* Coefficients =  [[ 0.36471167 -2.32161588  0.        ]]
+* Intercept =  -107.52112119449512
+* Expected Return =  -36.73433333333333
+* Train MSE =  1.1485814780017932e-27
+* Test MSE:  0.010796391598320023
+********* Results *********
+
+(base) qasimwani@MacBook-Pro code %  python ope.py -agents=2,9,5 -mse=maml -IS=RIS;  python ope.py -agents=2,9,5 -mse=lr -IS=RIS 
+
+Set params!
+********* Results *********
+* Coefficients =  [[ 2.99744380e-02 -2.02512173e+00  1.32353901e-05]]
+* Intercept =  -109.89872962145606
+* Expected Return =  -36.74133333333333
+* Train MSE =  0.0018445365634748394
+* Test MSE:  0.0073382688199905505
+********* Results *********
+Set params!
+********* Results *********
+* Coefficients =  [[-1.30096794 -0.84478464  0.        ]]
+* Intercept =  -119.30707140990424
+* Expected Return =  -36.71666666666667
+* Train MSE =  1.7431196469033623e-27
+* Test MSE:  0.028111991425045914
+********* Results *********
+
+(base) qasimwani@MacBook-Pro code %  python ope.py -agents=2,9,5 -mse=maml -IS=RIS;  python ope.py -agents=2,9,5 -mse=lr -IS=RIS
+
+Set params!
+********* Results *********
+* Coefficients =  [[ 8.02197700e-01 -2.71094289e+00  1.38310979e-06]]
+* Intercept =  -104.36325113682456
+* Expected Return =  -36.791000000000004
+* Train MSE =  5.278271644083917e-05
+* Test MSE:  0.026766128303256868
+********* Results *********
+Set params!
+********* Results *********
+* Coefficients =  [[ 2.20404486 -3.9566031   0.        ]]
+* Intercept =  -94.64010269952766
+* Expected Return =  -36.717000000000006
+* Train MSE =  2.4759714278536823e-27
+* Test MSE:  0.08050330543623561
+********* Results *********
+
+
+
+
+
+
+
+
+
+
+
