@@ -1,0 +1,35 @@
+(base) qasimwani@MacBook-Pro code % python ope.py -agents=2,5,9 -mse=maml -IS=RIS;  python ope.py -agents=2,5,9 -mse=lr -IS=RIS
+Set params!
+********* Results *********
+* Coefficients =  [[-0.2522779  -1.77614122]]
+* Intercept =  -112.00766069339835
+* Expected Return =  -36.75533333333333
+* Train MSE =  1.973659961147897e-06
+* Test MSE:  0.019716283014522325
+********* Results *********
+Set params!
+********* Results *********
+* Coefficients =  [[ 0.73912678 -2.66097925]]
+* Intercept =  -105.10205441088466
+* Expected Return =  -36.71233333333333
+* Train MSE =  3.6655736729269683e-28
+* Test MSE:  0.101050734224444
+********* Results *********
+(base) qasimwani@MacBook-Pro code % python ope.py -agents=2,5,9 -mse=maml -IS=OIS;  python ope.py -agents=2,5,9 -mse=lr -IS=OIS
+Set params!
+********* Results *********
+* Coefficients =  [[-7.68734845e-098 -2.95195082e-195]]
+* Intercept =  -125.86858738562702
+* Expected Return =  -36.72
+* Train MSE =  5.7799523998524975
+* Test MSE:  2.449547237017779
+********* Results *********
+Set params!
+********* Results *********
+* Coefficients =  [[-8.00088304e-098 -3.19946753e-195]]
+* Intercept =  -125.80595590348094
+* Expected Return =  -36.76833333333334
+* Train MSE =  8.384672410884606
+* Test MSE:  147.76084353588593
+********* Results *********
+(base) qasimwani@MacBook-Pro code % 
