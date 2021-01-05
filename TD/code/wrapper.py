@@ -15,16 +15,20 @@ from sklearn.linear_model import Lasso
 from sklearn import metrics
 import numpy as np
 
+from maml import MAML
+
 class MSE():
     """Perform OPE caculation using MSE as loss function"""
-    def __init__(self, type):
+    def __init__(self, type, param_size=None):
         """
         Specify type of regression algorithm for wrapper on MSE
         >>> type: (str) "lr" [simple linear regression], "ridge" [ridge regression],..., "maml" [meta-learning]
+        >>> param_size: (tuple) meta-learning parameter representing shape of policy_dict (see ope.py for more info on policy_dict)
         """
         self.model = None
-        self.degree = 3 #defauly polynomial order
-        
+        self.degree = 3 #default polynomial order
+        self.param_size = param_size #maml param
+
         if(type == "lr"):
             self.alg = self.linear_regression
             self.model = LinearRegression
@@ -46,6 +50,7 @@ class MSE():
         
         elif(type == "maml"):
             self.alg = self.maml
+            self.model = LinearRegression
         
         else:
             raise ValueError("Incorrect type specificed. See docs for `type`")
@@ -93,7 +98,7 @@ class MSE():
         else:
             self.reg.coef_ = self.coef
             self.reg.intercept_ = self.intercept
-
+        
         return self.reg.predict(X)
     
     def polynomial_regression(self, X, y):
@@ -126,7 +131,16 @@ class MSE():
         
     def maml(self, X, y):
         """implementation of model-agnostic meta-learning for parameter generation"""
-        raise NotImplementedError
+        self.reg = MAML(X, y, self.param_size)
+        self.reg.update() #perform 1 gradient update TODO: replace original/default params with trained params from another regression alg.
+        if(self.coef is None):
+            self.coef = self.reg.coef_.detach().numpy()
+            self.intercept = self.reg.intercept_.detach().numpy()
+        else:
+            self.reg.coef_.data = self.coef
+            self.reg.intercept_.data = self.intercept
+            
+        return self.reg.predict(X)
         
     def mse(self, X, y, mode="train"):
         """Calculates MSE"""
