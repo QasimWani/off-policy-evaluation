@@ -14,7 +14,7 @@ torch.set_default_dtype(torch.double) #bug fix - float matmul
 
 class MAML():
     """ Implementation of Model Agnostic meta-learning algorithm """
-    def __init__(self, X, values, alpha:float=0.01, beta:float=0.5, theta=None, bias:float=None):
+    def __init__(self, X, values, alpha:float=0.05, beta:float=0.001, theta=None, bias:float=None):
         """ 
             Initialize params and agents for tasks as defined:
             1. X: (nd.array) array of shape (N, 3) where N represents the number of evaluation agents used to calculate the gradient updates from policy_dict (see ope.py).
