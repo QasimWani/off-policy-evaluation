@@ -41,7 +41,7 @@ class MSE():
             self.model = Lasso
        
         elif(type == "logit"):
-            self.alg = self.logistic_regression
+            self.alg = self.logistic_regression #not implemented!
             
         elif(type == "poly"):
             self.alg = self.polynomial_regression

@@ -140,6 +140,6 @@ def load_env():
     return env
 
 
-def to_list(items:str):
-    """ Convert str to list of ints """
-    return [int(item) for item in items.split(',')]
+def to_list(items:str, cast=int):
+    """ Convert str to list of `cast` object """
+    return [cast(item) for item in items.split(',')]
