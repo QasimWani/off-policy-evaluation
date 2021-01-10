@@ -74,7 +74,9 @@ def get_trajectories(evaluation_agent, behavior_agent, N, type):
     """
     sigma = 0
     for _ in range(N):
-        xi, reward = sampling_function(evaluation_agent, behavior_agent)
+        xi, var_xi, reward = sampling_function(evaluation_agent, behavior_agent)
+        # xi = np.tanh(xi)
+        xi = np.clip(xi, 0, 1)
         sigma += reward * xi if(type == 0) else reward #X_2 doesn't use xi because it's distributed later.
     return sigma
 

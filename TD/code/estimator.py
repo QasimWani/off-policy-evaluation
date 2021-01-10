@@ -1,4 +1,6 @@
 ### define Importance Sampling Estimator functions
+import numpy as np
+
 from model import Agent
 
 class IS():
@@ -18,7 +20,8 @@ class IS():
         1. evaluation_agent - agent class object representing evaluation policy.
         2. behavior_agent - agent class object representing behavior policy.
         @Returns:
-        - ois : importance sampling ratio ratio b/w evaluation and behavior agent.
+        - prod : importance sampling ratio b/w evaluation and behavior agent.
+        - var  : importance sampling variance 
         - total_reward : return of behavior_agent.
         """
         ois = 1
@@ -27,10 +30,11 @@ class IS():
 
         counter = 0 #counter for maximum limit
 
+        ois = []
         while True:
             action, prob_behv = behavior_agent.get_action(behavior_agent.Q, state, eps=0) #generate best action and prob for behavior.
             _, prob_eval = evaluation_agent.get_action(evaluation_agent.Q, state, eps=0) #generate max probability for evaluation policy.
-            ois *= float(prob_eval/prob_behv) #compute IS
+            ois.append( float(prob_eval/prob_behv) ) #compute IS
             next_state, reward, done, info = self.env.step(action) #transition
 
             total_reward += reward #update reward
@@ -40,7 +44,7 @@ class IS():
             if(done or counter > 125): #stopping condition
                 break
 
-        return ois, total_reward
+        return np.prod(ois), np.var(ois), total_reward
     
     def RIS(self, evaluation_agent, behavior_agent):
         """
@@ -51,7 +55,8 @@ class IS():
         1. evaluation_agent - agent class object representing evaluation policy.
         2. behavior_agent - agent class object representing behavior policy.
         @Returns:
-        - ris : regression importance sampling ratio ratio b/w evaluation and behavior agent.
+        - prod : importance sampling ratio b/w evaluation and behavior agent.
+        - var  : importance sampling variance 
         - total_reward : return of behavior_agent.
         """
         #Steps: 
@@ -63,11 +68,12 @@ class IS():
         D, reward = self.gen_feat_matrix(behavior_agent)
         self.D = D #set dataset
 
+        ris = []
         for state, action in zip(*D):
             _, prob_eval = evaluation_agent.get_action(evaluation_agent.Q, state, eps=0) #generate max probability for evaluation policy.
             prob_estimate_behv = self.count(state, action)
-            ris *= float(prob_eval/prob_estimate_behv) #compute RIS
-        return ris, reward
+            ris.append( float(prob_eval/prob_estimate_behv) ) #compute RIS
+        return np.prod(ris), np.var(ris), reward
     
     def count(self, observation, action):
         """Compute count-based estimate for π_d(a|h_{i - n:i})"""
