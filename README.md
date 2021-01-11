@@ -1,5 +1,5 @@
-# off-policy-evaluation
-Approaching OPE as a regression problem.
+# off-policy-evaluation + MAML (Model Agnostic Meta-Learning)
+Approaching OPE as a regression problem using meta-learning.
 
 ### Implemented DQN (with PER - Prioritized Experience Replay) to generate 3 behavior policies for Off-Policy-Evaluation.
 
