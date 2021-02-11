@@ -2,15 +2,17 @@
 import numpy as np
 
 from model import Agent
+from maml import Importance_Sampling
 
 class IS():
     """Class to implement different Importance Sampling functions"""
-    def __init__(self, env, type="OIS"):
+    def __init__(self, env, isMAML, type="OIS"):
         """Define Importance Sampling function type"""
         self.env = env
         self.func = self.RIS if(type == "RIS") else self.OIS
+        self.isMAML = isMAML
         self.D = None #build dataset for computing π_d
-        
+
     def OIS(self, evaluation_agent:Agent, behavior_agent:Agent):
         """
         > Calculates ordinary importance sampling between behavior agent and evaluation agent
@@ -24,17 +26,21 @@ class IS():
         - var  : importance sampling variance 
         - total_reward : return of behavior_agent.
         """
-        ois = 1
         total_reward = 0
         state = self.env.reset() #reset
 
         counter = 0 #counter for maximum limit
 
+        OIS = {'pi_e': [], 'pi_k': []}
         ois = []
         while True:
             action, prob_behv = behavior_agent.get_action(behavior_agent.Q, state, eps=0) #generate best action and prob for behavior.
             _, prob_eval = evaluation_agent.get_action(evaluation_agent.Q, state, eps=0) #generate max probability for evaluation policy.
-            ois.append( float(prob_eval/prob_behv) ) #compute IS
+            
+            #store π(s|a) for behavior and evaluation policy
+            OIS['pi_e'].append(prob_eval); OIS['pi_k'].append(prob_behv)
+            ois.append( float(prob_eval/prob_behv) )
+            
             next_state, reward, done, info = self.env.step(action) #transition
 
             total_reward += reward #update reward
@@ -44,7 +50,12 @@ class IS():
             if(done or counter > 125): #stopping condition
                 break
 
-        return np.prod(ois), np.var(ois), total_reward
+        if self.isMAML:
+            is_maml = Importance_Sampling(OIS['pi_k'], OIS['pi_e']) #define MAML agent
+            is_maml.update() #perform single step MAML update
+            ois = is_maml.seekParams() #get updated Importance Sampling weights.
+        
+        return np.prod(ois), np.var(ois * total_reward), total_reward
     
     def RIS(self, evaluation_agent, behavior_agent):
         """
@@ -64,16 +75,26 @@ class IS():
         # 2. count(h, a) and count(h) accordingly. 
         # 3. generate the estimate for π_b as π_d
         # 4. compute the RIS ratio and return value
-        ris = 1
         D, reward = self.gen_feat_matrix(behavior_agent)
         self.D = D #set dataset
 
+        RIS = {'pi_e': [], 'pi_k': []}
         ris = []
+        
         for state, action in zip(*D):
             _, prob_eval = evaluation_agent.get_action(evaluation_agent.Q, state, eps=0) #generate max probability for evaluation policy.
             prob_estimate_behv = self.count(state, action)
-            ris.append( float(prob_eval/prob_estimate_behv) ) #compute RIS
-        return np.prod(ris), np.var(ris), reward
+            #store π(s|a) for behavior and evaluation policy
+            RIS['pi_e'].append(prob_eval); RIS['pi_k'].append(prob_estimate_behv)
+            ris.append( float(prob_eval/prob_estimate_behv) )
+            
+        if self.isMAML:
+            is_maml = Importance_Sampling(RIS['pi_k'], RIS['pi_e']) #define MAML agent
+            is_maml.update() #perform single step MAML update
+            
+            ris = is_maml.seekParams() #get updated Importance Sampling weights.
+        
+        return np.prod(ris), np.var(ris * reward), reward
     
     def count(self, observation, action):
         """Compute count-based estimate for π_d(a|h_{i - n:i})"""
