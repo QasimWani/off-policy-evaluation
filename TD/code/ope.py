@@ -76,7 +76,7 @@ def get_trajectories(evaluation_agent, behavior_agent, N, type):
     for _ in range(N):
         xi, var_xi, reward = sampling_function(evaluation_agent, behavior_agent)
         # xi = np.tanh(xi)
-        xi = np.clip(xi, 0, 1)
+        # xi = np.clip(xi, 0, 1)
         sigma += reward * xi if(type == 0) else reward #X_2 doesn't use xi because it's distributed later.
     return sigma
 
@@ -198,9 +198,10 @@ if __name__ == "__main__":
     parser.add_argument('-mse', metavar='str_mse_alg', default='lr',
                         help='Enter type of MSE algorithm for calculation of Value in MSE. Options = '\
                         'lr: linear regression; ridge: Ridge Regression; lasso: Lasso Regression; logit: Logistic Regression; maml: Model-Agnostic via Meta-Learning')
-
+    parser.add_argument('-MLIS', metavar='isMetaIS', type=str, default="1",
+                        help='Set MAML for IS? 1[0] = compare[skip]')
+    
     args = parser.parse_args() #parse arguments
-
     env = utils.load_env() #Load environment
     agent = Agent(env) #create TD agent
 
@@ -216,7 +217,7 @@ if __name__ == "__main__":
     policy_dict = policy_matrix(agents)
     
     ### Importance Sampling
-    sampling_function = IS(env, type=args.IS).func
+    sampling_function = IS(env, type=args.IS, isMAML=bool(args.MLIS)).func
     
     ### calculate X with 1k trajectories
     X = main(policy_dict, 1000)

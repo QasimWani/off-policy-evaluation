@@ -23,6 +23,8 @@ def run_model(args:dict):
     #run comparison with RIS and OIS
     if(args.IS == 'true'):
         compare_IS(args)
+    elif(bool(args.MLIS)):
+        compare_IS_MAML(args)
     elif(args.IS == 'false'):
         compare_mse(args)
     else:
@@ -40,7 +42,7 @@ def compare_mse(args:dict, mode='RIS'):
     for alg in tqdm(mse_alg):
         train_error = []; test_error = [] #wrapper function specific error holder
         for agent_idx in range(1, 10): #number of agents, see specifications in ../model/README.md
-            cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={alg} -IS={mode}'
+            cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={alg} -IS={mode} -MLIS=0'
             result = subprocess.check_output(cmd, shell=True).splitlines()[-3:-1]
 
             #compute errors
@@ -65,6 +67,51 @@ def compare_mse(args:dict, mode='RIS'):
     plt.legend()
     plt.grid()
     plt.show()
+
+def compare_IS_MAML(args:dict, mode='RIS'):
+    """ Compare MSE with and without using meta-update for clipper function """
+    mse_alg = 'lr' if args.mse == [] else utils.to_list(args.mse, str)[0] #select first MSE algorithm if multiple provided
+            
+    train_error_MAML = []; train_error_NAML = [] #With MAML, Without MAML
+    test_error_MAML = []; test_error_NAML = [] 
+    
+    for agent_idx in tqdm(range(1, 10)): #number of agents, see specifications in ../model/README.md
+                    
+        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS={mode} -MLIS=1'
+        w_maml = subprocess.check_output(cmd, shell=True).splitlines()[-3:-1]
+        
+        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS={mode} -MLIS=0'
+        wo_maml = subprocess.check_output(cmd, shell=True).splitlines()[-3:-1]
+        
+        #compute With MAML errors
+        tre = float(str(w_maml[0]).split(" ")[-1].strip()[:-1])
+        tee = float(str(w_maml[1]).split(" ")[-1].strip()[:-1])
+
+        train_error_MAML.append(tre)
+        test_error_MAML.append(tee)
+
+        #compute Without MAML errors
+        tre = float(str(wo_maml[0]).split(" ")[-1].strip()[:-1])
+        tee = float(str(wo_maml[1]).split(" ")[-1].strip()[:-1])
+        
+        train_error_NAML.append(tre)
+        test_error_NAML.append(tee)
+        
+    print("MAML Test errors",test_error_MAML)
+    print("N-MAML Test errors", test_error_NAML)
+    
+    # plt.plot(train_error_RIS, label='RIS Train Errors')
+    plt.plot(np.arange(1, 10), test_error_MAML, label='MAML Test Errors')
+    
+    # plt.plot(train_error_OIS, label='OIS Train Errors')
+    plt.plot(np.arange(1, 10), test_error_NAML, label='N-MAML Test Errors')
+
+    plt.title("MSE Error for different behavior agents")
+    plt.xlabel("Policy strength")
+    plt.ylabel("MSE Error")
+    plt.legend()
+    plt.grid()
+    plt.show()
     
     
 def compare_IS(args:dict):
@@ -76,10 +123,10 @@ def compare_IS(args:dict):
     
     for agent_idx in tqdm(range(1, 10)): #number of agents, see specifications in ../model/README.md
                     
-        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS=RIS'
+        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS=RIS -MLIS=0'
         result_RIS = subprocess.check_output(cmd, shell=True).splitlines()[-3:-1]
         
-        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS=OIS'
+        cmd = f'python ope.py -agents={agent_idx},{args.agents} -mse={mse_alg} -IS=OIS -MLIS=0'
         result_OIS = subprocess.check_output(cmd, shell=True).splitlines()[-3:-1]
         
         #compute RIS errors
@@ -126,7 +173,9 @@ if __name__ == "__main__":
     parser.add_argument('-mse', metavar='compareMSE', type=str, default=[],
                         help='Enter desired wrapper algorithm for comparison of MSE error. Leave blank to include all. Options = '\
                         'lr: linear regression; poly: polynomial regression; ridge: Ridge Regression; lasso: Lasso Regression; maml: Model Agnostic Meta-Learning')
-    
+    #flag for IS MAML
+    parser.add_argument('-MLIS', metavar='isMetaIS', type=str, default="0",
+                        help='Compare MSE error with and without MAML update on IS? 0[1] = skip[compare]')
     args = parser.parse_args() #parse arguments
     
     #Simulate!
